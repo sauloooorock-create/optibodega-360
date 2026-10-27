@@ -21,6 +21,7 @@ optibodega-360/
     ├── mermas.py           # Módulo 2 · Mermas y costos (Pareto 80/20)
     ├── layout.py           # Módulo 3 · Layout y recorridos (rutas, ABC, operaciones)
     ├── kaizen.py           # Módulo 4 · Cuadro de mando Kaizen (KPIs por turno)
+    ├── respaldo.py         # Respaldo, restauración y reporte de resultados
     └── proximamente.py     # Fichas de módulos futuros (reserva)
 ```
 
