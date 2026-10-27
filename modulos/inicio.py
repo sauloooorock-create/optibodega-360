@@ -5,7 +5,7 @@ from datetime import date, timedelta
 import streamlit as st
 
 from modulos import database as db
-from modulos import mermas, toc, ui
+from modulos import kaizen, mermas, toc, ui
 
 
 def _datos_30_dias() -> tuple[float, int, str, float]:
@@ -40,8 +40,10 @@ def _banner_demo() -> None:
                      use_container_width=True):
             n_m = mermas.generar_datos_demo()
             n_t = toc.generar_demo_toc()
+            n_k = kaizen.generar_demo_kaizen()
             st.session_state["inicio_flash"] = (
-                f"Listo: {n_m} mermas y {n_t} tiempos observados cargados."
+                f"Listo: {n_m} mermas, {n_t} tiempos observados y {n_k} turnos de producción "
+                "cargados."
             )
             st.rerun()
 
@@ -83,7 +85,7 @@ def _tarjeta(titulo: str, herramienta: str, linea_viva: str, listo: bool,
             st.page_link(pagina, label=etiqueta_boton, icon="➡️")
 
 
-def render(pagina_mermas=None, pagina_toc=None) -> None:
+def render(pagina_mermas=None, pagina_toc=None, pagina_kaizen=None) -> None:
     sucursal = st.session_state.get("sucursal", "")
     ui.page_header(
         "OptiBodega 360",
@@ -123,8 +125,9 @@ def render(pagina_mermas=None, pagina_toc=None) -> None:
         _tarjeta("Layout y recorridos", "Diagrama de recorrido · rutas óptimas",
                  "Distancias almacén → pasillos y ruta de surtido mínima.", listo=False)
     with c4:
-        _tarjeta("Cuadro de mando Kaizen", "KPIs por turno",
-                 "Eficiencia, tiempos muertos y cumplimiento de metas.", listo=False)
+        _tarjeta("Cuadro de mando Kaizen", "KPIs por turno · semáforo",
+                 "Cumplimiento, eficiencia y tiempos muertos por turno, con bitácora de mejoras.",
+                 listo=True, pagina=pagina_kaizen, etiqueta_boton="Abrir Cuadro de mando")
 
     st.markdown("##### 🔄 Ciclo PHVA (Deming)")
     p, h, v, a = st.columns(4)
