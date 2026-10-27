@@ -315,7 +315,7 @@ def _excel_bytes(hojas: dict[str, pd.DataFrame]) -> bytes:
 def _filtros(df_all: pd.DataFrame) -> dict:
     min_d = df_all["fecha"].min().date()
     max_d = max(df_all["fecha"].max().date(), date.today())
-    with st.expander("⚙️ Filtros y parámetros del análisis", expanded=False):
+    with st.expander("⚙️ Filtros", expanded=False):
         c1, c2, c3 = st.columns([1.2, 1.4, 1.4])
         rango = c1.date_input("Periodo", value=(min_d, max_d), key="mer_rango",
                               format="DD/MM/YYYY")
@@ -620,29 +620,30 @@ def _tab_analisis(df: pd.DataFrame) -> None:
                         xaxis_title="", yaxis_title="")
     c2.plotly_chart(fig_h, key="fig_heat")
 
-    # ---- Patrones por turno y día ------------------------------------------
-    c3, c4 = st.columns(2)
-    turno = df.groupby("turno", as_index=False)["costo_total"].sum().sort_values("costo_total")
-    fig_tu = px.bar(turno, x="costo_total", y="turno", orientation="h",
-                    title="Pérdida por turno", labels={"costo_total": "MXN", "turno": ""},
-                    color_discrete_sequence=[ui.COLOR_PRIMARIO])
-    fig_tu.update_layout(height=320, margin=dict(l=10, r=10, t=50, b=10))
-    c3.plotly_chart(fig_tu, key="fig_turno")
+    with st.expander("📊 Más detalle: turno, día de la semana y mapa de árbol"):
+        # ---- Patrones por turno y día ------------------------------------------
+        c3, c4 = st.columns(2)
+        turno = df.groupby("turno", as_index=False)["costo_total"].sum().sort_values("costo_total")
+        fig_tu = px.bar(turno, x="costo_total", y="turno", orientation="h",
+                        title="Pérdida por turno", labels={"costo_total": "MXN", "turno": ""},
+                        color_discrete_sequence=[ui.COLOR_PRIMARIO])
+        fig_tu.update_layout(height=320, margin=dict(l=10, r=10, t=50, b=10))
+        c3.plotly_chart(fig_tu, key="fig_turno")
 
-    dsem = df.assign(dia=df["fecha"].dt.dayofweek).groupby("dia")["costo_total"].sum()
-    dsem = dsem.reindex(range(7), fill_value=0)
-    fig_d = px.bar(x=DIAS_SEMANA, y=dsem.values, title="Pérdida por día de la semana",
-                   labels={"x": "", "y": "MXN"}, color_discrete_sequence=[ui.COLOR_LINEA])
-    fig_d.update_layout(height=320, margin=dict(l=10, r=10, t=50, b=10))
-    c4.plotly_chart(fig_d, key="fig_dia")
+        dsem = df.assign(dia=df["fecha"].dt.dayofweek).groupby("dia")["costo_total"].sum()
+        dsem = dsem.reindex(range(7), fill_value=0)
+        fig_d = px.bar(x=DIAS_SEMANA, y=dsem.values, title="Pérdida por día de la semana",
+                       labels={"x": "", "y": "MXN"}, color_discrete_sequence=[ui.COLOR_LINEA])
+        fig_d.update_layout(height=320, margin=dict(l=10, r=10, t=50, b=10))
+        c4.plotly_chart(fig_d, key="fig_dia")
 
-    # ---- Mapa de árbol -----------------------------------------------------
-    fig_tm = px.treemap(df, path=[px.Constant("Tienda"), "departamento", "producto"],
-                        values="costo_total", color="departamento",
-                        title="Mapa de árbol de pérdidas: departamento → producto")
-    fig_tm.update_traces(hovertemplate="<b>%{label}</b><br>$%{value:,.0f}<extra></extra>")
-    fig_tm.update_layout(height=480, margin=dict(l=10, r=10, t=50, b=10))
-    st.plotly_chart(fig_tm, key="fig_tree")
+        # ---- Mapa de árbol -----------------------------------------------------
+        fig_tm = px.treemap(df, path=[px.Constant("Tienda"), "departamento", "producto"],
+                            values="costo_total", color="departamento",
+                            title="Mapa de árbol de pérdidas: departamento → producto")
+        fig_tm.update_traces(hovertemplate="<b>%{label}</b><br>$%{value:,.0f}<extra></extra>")
+        fig_tm.update_layout(height=480, margin=dict(l=10, r=10, t=50, b=10))
+        st.plotly_chart(fig_tm, key="fig_tree")
 
 
 def _tab_plan(df: pd.DataFrame) -> None:

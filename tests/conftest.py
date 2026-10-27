@@ -11,5 +11,5 @@ try:
     import streamlit  # noqa: F401
 except ImportError:
     sys.modules["streamlit"] = MagicMock()
-    for m in ["plotly", "plotly.express", "plotly.graph_objects", "plotly.subplots"]:
+    for m in ["plotly", "plotly.express", "plotly.graph_objects", "plotly.subplots", "plotly.io"]:
         sys.modules.setdefault(m, MagicMock())

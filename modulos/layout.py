@@ -102,7 +102,7 @@ def mejorar_2opt(ruta: list[tuple]) -> list[tuple]:
 # Datos
 # =====================================================================
 def _parametros() -> dict:
-    with st.expander("⚙️ Parámetros del piso de venta", expanded=False):
+    with st.expander("⚙️ Ajustes de la tienda", expanded=False):
         c1, c2, c3, c4, c5 = st.columns(5)
         pasillos = c1.number_input("Pasillos de venta", min_value=1, max_value=20, value=8,
                                    key="lay_pasillos")

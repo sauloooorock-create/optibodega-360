@@ -149,7 +149,7 @@ def obtener_tiempos() -> pd.DataFrame:
 # Interfaz
 # =====================================================================
 def _parametros() -> dict:
-    with st.expander("⚙️ Parámetros del sistema (ajústalos a tu tienda)", expanded=False):
+    with st.expander("⚙️ Ajustes de la tienda", expanded=False):
         st.markdown("**🧾 Cajas**")
         c1, c2, c3, c4 = st.columns(4)
         cajas = c1.number_input("Cajas abiertas", min_value=1, max_value=20, value=4,
@@ -200,7 +200,6 @@ def _tab_cajas(P: dict) -> None:
     r = mmc(P["pico"], mu, P["cajas"])
     c_req = c_minimo(P["pico"], mu, P["meta"])
 
-    st.markdown("#### Colas en cajas · modelo M/M/c")
     k = st.columns(4)
     k[0].metric("Utilización de cajeros", f"{min(r['rho'], 9.99) * 100:.0f}%",
                 "saturado" if r["rho"] >= 0.9 else "holgura" if r["rho"] < 0.7 else "normal",
@@ -260,33 +259,31 @@ def _tab_cajas(P: dict) -> None:
     else:
         ui.insight("✅ Con las cajas actuales se cumple la meta en todas las horas del perfil.")
 
-    # Simulación de eventos discretos
-    st.markdown("#### 🎲 Simulación de una hora de pico")
-    st.caption("Simula llegadas aleatorias y tiempos de servicio variables. La simulación "
-               "arranca con la fila vacía: con pocas horas la espera queda por debajo del "
-               "valor de estado estable del modelo. Con 8 horas o más ambos valores convergen; "
-               "esa convergencia valida el modelo.")
-    horas_sim = st.slider("Horas simuladas", 1, 8, 1, key="toc_horas_sim")
-    if st.button("▶️ Ejecutar simulación", key="toc_sim_btn"):
-        st.session_state["toc_sim"] = simular_espera(P["pico"], P["t_caja"], P["cajas"],
-                                                     float(horas_sim))
-        st.session_state["toc_sim_horas"] = horas_sim
-    esperas_sim = st.session_state.get("toc_sim")
-    if esperas_sim is not None and len(esperas_sim):
-        s = st.columns(4)
-        s[0].metric("Clientes atendidos", f"{len(esperas_sim):,}")
-        s[1].metric("Espera promedio (sim.)", _fmt_min(float(esperas_sim.mean())),
-                    f"Modelo en estado estable: {_fmt_min(r['Wq'])}", delta_color="off")
-        s[2].metric("Percentil 90", _fmt_min(float(np.percentile(esperas_sim, 90))))
-        s[3].metric("Superan la meta", f"{(esperas_sim > P['meta']).mean() * 100:.0f}%",
-                    delta_color="off")
-        fig_s = px.histogram(x=esperas_sim, nbins=25,
-                             labels={"x": "Espera en fila (min)", "count": "Clientes"},
-                             title="Distribución de la espera simulada")
-        fig_s.add_vline(x=P["meta"], line_dash="dash", line_color=ui.COLOR_A)
-        fig_s.update_layout(height=320, margin=dict(l=10, r=10, t=50, b=10))
-        fig_s.update_traces(marker_color=ui.COLOR_LINEA)
-        st.plotly_chart(fig_s, key="toc_fig_sim")
+    with st.expander("🎲 Simulación paso a paso (avanzado)"):
+        # Simulación de eventos discretos
+        st.caption("Llegadas y servicios aleatorios. Con 8 horas o más, la espera simulada se "
+                   "acerca al modelo: esa convergencia valida el modelo.")
+        horas_sim = st.slider("Horas simuladas", 1, 8, 1, key="toc_horas_sim")
+        if st.button("▶️ Ejecutar simulación", key="toc_sim_btn"):
+            st.session_state["toc_sim"] = simular_espera(P["pico"], P["t_caja"], P["cajas"],
+                                                         float(horas_sim))
+            st.session_state["toc_sim_horas"] = horas_sim
+        esperas_sim = st.session_state.get("toc_sim")
+        if esperas_sim is not None and len(esperas_sim):
+            s = st.columns(4)
+            s[0].metric("Clientes atendidos", f"{len(esperas_sim):,}")
+            s[1].metric("Espera promedio (sim.)", _fmt_min(float(esperas_sim.mean())),
+                        f"Modelo en estado estable: {_fmt_min(r['Wq'])}", delta_color="off")
+            s[2].metric("Percentil 90", _fmt_min(float(np.percentile(esperas_sim, 90))))
+            s[3].metric("Superan la meta", f"{(esperas_sim > P['meta']).mean() * 100:.0f}%",
+                        delta_color="off")
+            fig_s = px.histogram(x=esperas_sim, nbins=25,
+                                 labels={"x": "Espera en fila (min)", "count": "Clientes"},
+                                 title="Distribución de la espera simulada")
+            fig_s.add_vline(x=P["meta"], line_dash="dash", line_color=ui.COLOR_A)
+            fig_s.update_layout(height=320, margin=dict(l=10, r=10, t=50, b=10))
+            fig_s.update_traces(marker_color=ui.COLOR_LINEA)
+            st.plotly_chart(fig_s, key="toc_fig_sim")
 
 
 def _tab_estacionamiento(P: dict) -> None:
