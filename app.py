@@ -32,6 +32,28 @@ ui.inject_css()
 ui.sidebar_info()
 
 
+def _sidebar_demo() -> None:
+    """Un solo botón llena los cuatro módulos; disponible en cualquier página."""
+    with st.sidebar:
+        st.divider()
+        st.markdown("**Datos de prueba**")
+        st.caption("Carga 30–90 días simulados de los cuatro módulos.")
+        if st.button("🎲 Cargar demostración", use_container_width=True):
+            with st.spinner("Generando datos…"):
+                n_m = mermas.generar_datos_demo()
+                n_t = toc.generar_demo_toc()
+                n_k = kaizen.generar_demo_kaizen()
+                n_l = layout.generar_demo_layout(layout.PARAM_DEFAULT)
+            st.session_state["flash_global"] = (
+                f"Demostración lista: {n_m} mermas · {n_t} tiempos · {n_k} turnos · {n_l} ubicaciones.")
+            st.rerun()
+        if st.session_state.pop("flash_global", None):
+            st.success("Demostración lista.")
+
+
+_sidebar_demo()
+
+
 # ---------------------------------------------------------------------
 # Páginas (cada una delega en su módulo)
 # ---------------------------------------------------------------------
