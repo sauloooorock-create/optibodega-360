@@ -57,6 +57,20 @@ CREATE INDEX IF NOT EXISTS idx_mermas_fecha  ON mermas (fecha);
 CREATE INDEX IF NOT EXISTS idx_mermas_depto  ON mermas (departamento);
 
 -- ---------------------------------------------------------------
+-- Módulo 1 · Tiempos observados (cajas, estacionamiento, recibo)
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS tiempos_toc (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha       TEXT NOT NULL,                  -- YYYY-MM-DD
+    hora        INTEGER NOT NULL CHECK (hora BETWEEN 0 AND 23),
+    area        TEXT NOT NULL,                  -- Cajas | Estacionamiento | Recibo
+    minutos     REAL NOT NULL CHECK (minutos >= 0),
+    origen      TEXT DEFAULT 'manual',          -- manual | demo
+    creado_en   TEXT DEFAULT (datetime('now', 'localtime'))
+);
+CREATE INDEX IF NOT EXISTS idx_toc_area ON tiempos_toc (area, fecha);
+
+-- ---------------------------------------------------------------
 -- Módulo 2 · Plan de acción (ciclo PHVA sobre los pocos vitales)
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS acciones_mermas (

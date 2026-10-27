@@ -1,12 +1,11 @@
-"""Página de inicio: resumen ejecutivo, estado de los módulos y arranque rápido."""
+"""Página de inicio: resumen ejecutivo, Pareto de mermas y estado de los módulos."""
 
 from datetime import date, timedelta
 
 import streamlit as st
 
 from modulos import database as db
-from modulos import ui
-from modulos.mermas import generar_datos_demo
+from modulos import mermas, toc, ui
 
 
 def _datos_30_dias() -> tuple[float, int, str, float]:
@@ -29,29 +28,45 @@ def _acciones_abiertas() -> int:
 
 
 def _banner_demo() -> None:
-    """Portada vacía: un botón para llenar la app con un escenario de demostración."""
+    """Portada vacía: un botón para llenar la app con escenarios de demostración."""
     with st.container(border=True):
         st.markdown("#### 🚀 Empieza con un escenario de demostración")
         st.write(
-            "Aún no hay registros de merma. Carga 90 días de datos simulados de una tienda "
-            "con patrón 80/20 y explora el Pareto, el control estadístico y el plan de acción "
-            "en menos de un minuto."
+            "Aún no hay datos. Carga 30 a 90 días simulados de una tienda: mermas con patrón "
+            "80/20 y tiempos de cajas y recibo. Así podrás explorar el Pareto, las colas y la "
+            "restricción en menos de un minuto."
         )
         if st.button("🎲 Cargar escenario de demostración", type="primary",
                      use_container_width=True):
-            n = generar_datos_demo()
-            st.session_state["inicio_flash"] = f"Listo: se cargaron {n} registros de merma."
+            n_m = mermas.generar_datos_demo()
+            n_t = toc.generar_demo_toc()
+            st.session_state["inicio_flash"] = (
+                f"Listo: {n_m} mermas y {n_t} tiempos observados cargados."
+            )
             st.rerun()
 
 
 def _metricas(total: float, eventos: int, producto: str, costo_producto: float,
-                acciones: int) -> None:
+              acciones: int) -> None:
     c = st.columns(4)
     c[0].metric("Merma últimos 30 días", ui.money(total) if eventos else "—")
     c[1].metric("Eventos registrados (30 días)", f"{eventos:,}")
     c[2].metric("Producto crítico", producto,
                 ui.money(costo_producto) if eventos else None, delta_color="off")
     c[3].metric("Acciones de mejora abiertas", acciones)
+
+
+def _bloque_pareto() -> None:
+    """Pareto de productos en la portada: lo primero que se ve es el análisis 80/20."""
+    df = mermas.obtener_mermas()
+    if df.empty:
+        return
+    st.markdown("##### 📉 Pareto de pérdidas por producto (últimos 90 días)")
+    par = mermas.calcular_pareto(df, "producto")
+    fig = mermas.grafica_pareto(par, "producto", "costo", top_n=10, umbral=80)
+    fig.update_layout(height=430)
+    st.plotly_chart(fig, key="inicio_pareto")
+    ui.insight(mermas._texto_insight(par, "Producto", "costo"))
 
 
 def _tarjeta(titulo: str, herramienta: str, linea_viva: str, listo: bool,
@@ -68,7 +83,7 @@ def _tarjeta(titulo: str, herramienta: str, linea_viva: str, listo: bool,
             st.page_link(pagina, label=etiqueta_boton, icon="➡️")
 
 
-def render(pagina_mermas=None) -> None:
+def render(pagina_mermas=None, pagina_toc=None) -> None:
     sucursal = st.session_state.get("sucursal", "")
     ui.page_header(
         "OptiBodega 360",
@@ -88,12 +103,16 @@ def render(pagina_mermas=None) -> None:
     st.markdown("##### 📊 Resumen de los últimos 30 días")
     _metricas(total, eventos, producto, costo_producto, acciones)
 
+    _bloque_pareto()
+
     st.markdown("##### 🧩 Módulos")
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        _tarjeta("Cuellos de botella", "Teoría de Restricciones",
-                 "Colas en cajas, flujo del estacionamiento y descarga en recibo.",
-                 listo=False)
+        linea_toc = ("Colas en cajas, flujo del estacionamiento y descarga en recibo. "
+                     "Simula escenarios y encuentra la restricción.")
+        _tarjeta("Cuellos de botella", "Teoría de Restricciones · colas M/M/c",
+                 linea_toc, listo=True, pagina=pagina_toc,
+                 etiqueta_boton="Abrir Cuellos de botella")
     with c2:
         linea = (f"**{ui.money(total)}** perdidos en 30 días. Producto crítico: "
                  f"**{producto}**." if eventos else
@@ -116,10 +135,10 @@ def render(pagina_mermas=None) -> None:
 
     with st.expander("🚀 Cómo usar el sistema"):
         st.markdown(
-            "1. Abre **Mermas y Costos** desde el menú o la tarjeta de arriba.\n"
-            "2. Carga la demostración o captura tus primeras mermas.\n"
-            "3. Revisa el **Pareto** para identificar los productos y departamentos clase A.\n"
-            "4. Registra acciones correctivas en el **Plan de acción** y dales seguimiento.\n"
-            "5. Descarga el reporte en Excel para los anexos de la tesis."
+            "1. Abre **Cuellos de botella** para ver dónde se forman las colas y qué limita el flujo.\n"
+            "2. Abre **Mermas y Costos** para priorizar los productos que más pierden dinero.\n"
+            "3. Registra acciones correctivas en el **Plan de acción** y dales seguimiento.\n"
+            "4. Descarga el reporte en Excel para los anexos de la tesis."
         )
-    st.caption(f"Base de datos: {db.DB_PATH.name} · {db.contar('mermas'):,} registros de merma")
+    st.caption(f"Base de datos: {db.DB_PATH.name} · {db.contar('mermas'):,} mermas · "
+               f"{db.contar('tiempos_toc'):,} tiempos observados")
