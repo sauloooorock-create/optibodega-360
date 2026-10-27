@@ -386,11 +386,10 @@ def _tab_registro(P: dict) -> None:
         st.session_state["kz_flash"] = "Se borró la producción registrada."
         st.rerun()
 
-    with st.expander("🗂️ Últimos registros"):
-        ult = db.query_df("SELECT fecha, turno, meta, real, colaboradores, horas, "
-                          "minutos_muertos, motivo_muerto, origen FROM produccion_turnos "
-                          "ORDER BY fecha DESC, turno LIMIT 200")
-        st.dataframe(ult, hide_index=True, height=340)
+    ult = db.query_df("SELECT fecha, turno, meta, real, colaboradores, horas, "
+                      "minutos_muertos, motivo_muerto, origen FROM produccion_turnos "
+                      "ORDER BY fecha DESC, turno LIMIT 200")
+    st.dataframe(ult, hide_index=True, height=340)
 
 
 def _tab_kaizen() -> None:
@@ -452,15 +451,13 @@ def render() -> None:
 
     P = _parametros()
     umbrales = {"verde": P["verde"], "amarillo": P["amarillo"], "efic": P["efic"]}
-    t1, t2, t3, t4, t5 = st.tabs(["🚦 Panel del día", "📈 Tendencias", "⏱️ Tiempos muertos",
-                                  "📝 Registro", "💡 Kaizen"])
-    with t1:
-        _tab_panel(P, umbrales)
-    with t2:
-        _tab_tendencias(umbrales)
-    with t3:
-        _tab_paros(umbrales)
-    with t4:
-        _tab_registro(P)
-    with t5:
-        _tab_kaizen()
+    ui.seccion("🚦 Panel del día")
+    _tab_panel(P, umbrales)
+    ui.seccion("📈 Tendencias")
+    _tab_tendencias(umbrales)
+    ui.seccion("⏱️ Tiempos muertos")
+    _tab_paros(umbrales)
+    ui.seccion("📝 Registro de turnos")
+    _tab_registro(P)
+    ui.seccion("💡 Bitácora Kaizen")
+    _tab_kaizen()

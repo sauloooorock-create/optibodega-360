@@ -317,12 +317,11 @@ def _tab_plano(df: pd.DataFrame, P: dict) -> None:
         f"<b>{largos['2-opt (mejorada)']:.0f} m</b>, un ahorro de "
         f"<b>{(base - largos['2-opt (mejorada)']) / base * 100:.0f}%</b> sin mover un solo producto."
     )
-    with st.expander("Secuencia de paradas de la ruta mejorada"):
-        seq = pd.DataFrame([{"Parada": i + 1, "SKU": q[2],
-                             "Pasillo": f"P{int(round((q[0] - OFFSET_M) / P['sep'])) + 1}",
-                             "Metros desde almacén": round(q[0] + q[1], 1)}
-                            for i, q in enumerate(opt[1:-1])])
-        st.dataframe(seq, hide_index=True)
+    seq = pd.DataFrame([{"Parada": i + 1, "SKU": q[2],
+                         "Pasillo": f"P{int(round((q[0] - OFFSET_M) / P['sep'])) + 1}",
+                         "Metros desde almacén": round(q[0] + q[1], 1)}
+                        for i, q in enumerate(opt[1:-1])])
+    st.dataframe(seq, hide_index=True)
 
 
 def _tab_distancias(df: pd.DataFrame, P: dict) -> None:
@@ -535,15 +534,13 @@ def render() -> None:
     )
     P = _parametros()
     df = cargar(P)
-    t1, t2, t3, t4, t5 = st.tabs(["🧭 Plano y ruta", "📏 Distancias", "🔁 Rotación (ABC)",
-                                  "⚙️ Operaciones", "🗂️ Datos"])
-    with t1:
-        _tab_plano(df, P)
-    with t2:
-        _tab_distancias(df, P)
-    with t3:
-        _tab_rotacion(df, P)
-    with t4:
-        _tab_operaciones(df, P)
-    with t5:
-        _tab_datos(df, P)
+    ui.seccion("🧭 Plano y ruta de surtido")
+    _tab_plano(df, P)
+    ui.seccion("📏 Distancias")
+    _tab_distancias(df, P)
+    ui.seccion("🔁 Reubicación por rotación (ABC)")
+    _tab_rotacion(df, P)
+    ui.seccion("⚙️ Diagrama de operaciones")
+    _tab_operaciones(df, P)
+    ui.seccion("🗂️ Ubicaciones y administración")
+    _tab_datos(df, P)
