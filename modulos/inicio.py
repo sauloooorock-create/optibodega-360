@@ -5,7 +5,7 @@ from datetime import date, timedelta
 import streamlit as st
 
 from modulos import database as db
-from modulos import kaizen, mermas, toc, ui
+from modulos import kaizen, layout, mermas, toc, ui
 
 
 def _datos_30_dias() -> tuple[float, int, str, float]:
@@ -41,9 +41,10 @@ def _banner_demo() -> None:
             n_m = mermas.generar_datos_demo()
             n_t = toc.generar_demo_toc()
             n_k = kaizen.generar_demo_kaizen()
+            n_l = layout.generar_demo_layout(layout.PARAM_DEFAULT)
             st.session_state["inicio_flash"] = (
-                f"Listo: {n_m} mermas, {n_t} tiempos observados y {n_k} turnos de producción "
-                "cargados."
+                f"Listo: {n_m} mermas, {n_t} tiempos, {n_k} turnos de producción y "
+                f"{n_l} ubicaciones cargados."
             )
             st.rerun()
 
@@ -85,7 +86,7 @@ def _tarjeta(titulo: str, herramienta: str, linea_viva: str, listo: bool,
             st.page_link(pagina, label=etiqueta_boton, icon="➡️")
 
 
-def render(pagina_mermas=None, pagina_toc=None, pagina_kaizen=None) -> None:
+def render(pagina_mermas=None, pagina_toc=None, pagina_kaizen=None, pagina_layout=None) -> None:
     sucursal = st.session_state.get("sucursal", "")
     ui.page_header(
         "OptiBodega 360",
@@ -122,8 +123,9 @@ def render(pagina_mermas=None, pagina_toc=None, pagina_kaizen=None) -> None:
         _tarjeta("Mermas y costos", "Diagrama de Pareto 80/20", linea, listo=True,
                  pagina=pagina_mermas, etiqueta_boton="Abrir Mermas y Costos")
     with c3:
-        _tarjeta("Layout y recorridos", "Diagrama de recorrido · rutas óptimas",
-                 "Distancias almacén → pasillos y ruta de surtido mínima.", listo=False)
+        _tarjeta("Layout y recorridos", "Ruta óptima · reubicación ABC",
+                 "Distancias del almacén a cada pasillo, ruta de surtido 2-opt y ahorro de metros.",
+                 listo=True, pagina=pagina_layout, etiqueta_boton="Abrir Layout y recorridos")
     with c4:
         _tarjeta("Cuadro de mando Kaizen", "KPIs por turno · semáforo",
                  "Cumplimiento, eficiencia y tiempos muertos por turno, con bitácora de mejoras.",

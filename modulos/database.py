@@ -57,6 +57,16 @@ CREATE INDEX IF NOT EXISTS idx_mermas_fecha  ON mermas (fecha);
 CREATE INDEX IF NOT EXISTS idx_mermas_depto  ON mermas (departamento);
 
 -- ---------------------------------------------------------------
+-- Módulo 3 · Ubicación de productos en el piso de venta
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS ubicaciones_layout (
+    sku         TEXT PRIMARY KEY,
+    pasillo     INTEGER NOT NULL CHECK (pasillo >= 1),   -- pasillo de venta (1..N)
+    posicion    REAL NOT NULL CHECK (posicion >= 0),     -- metros desde la entrada del pasillo
+    frecuencia  REAL NOT NULL DEFAULT 0 CHECK (frecuencia >= 0)  -- surtidos por día
+);
+
+-- ---------------------------------------------------------------
 -- Módulo 4 · Producción y tiempos muertos por turno (un registro por día y turno)
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS produccion_turnos (
