@@ -10,7 +10,7 @@ Ejecutar localmente:
 import streamlit as st
 
 from modulos import database as db
-from modulos import inicio, mermas, proximamente, ui
+from modulos import inicio, mermas, proximamente, toc, ui
 
 st.set_page_config(
     page_title="OptiBodega 360 · Mejora Continua",
@@ -36,7 +36,7 @@ ui.sidebar_info()
 # Páginas (cada una delega en su módulo)
 # ---------------------------------------------------------------------
 def pagina_cuellos_botella():
-    proximamente.render("toc")
+    toc.render()
 
 
 def pagina_mermas():
@@ -55,8 +55,12 @@ p_mermas = st.Page(pagina_mermas, title="Mermas y Costos (Pareto)", icon="📉",
                    url_path="mermas")
 
 
+p_toc = st.Page(pagina_cuellos_botella, title="Cuellos de Botella (TOC)", icon="🚦",
+                url_path="cuellos-de-botella")
+
+
 def pagina_inicio():
-    inicio.render(pagina_mermas=p_mermas)
+    inicio.render(pagina_mermas=p_mermas, pagina_toc=p_toc)
 
 
 navegacion = st.navigation(
@@ -65,8 +69,7 @@ navegacion = st.navigation(
             st.Page(pagina_inicio, title="Inicio", icon="🏠", default=True),
         ],
         "Módulos de Ingeniería Industrial": [
-            st.Page(pagina_cuellos_botella, title="Cuellos de Botella (TOC)", icon="🚦",
-                    url_path="cuellos-de-botella"),
+            p_toc,
             p_mermas,
             st.Page(pagina_layout, title="Layout y Recorridos", icon="🗺️",
                     url_path="layout"),
