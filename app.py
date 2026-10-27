@@ -10,7 +10,7 @@ Ejecutar localmente:
 import streamlit as st
 
 from modulos import database as db
-from modulos import inicio, kaizen, mermas, proximamente, toc, ui
+from modulos import inicio, kaizen, layout, mermas, toc, ui
 
 st.set_page_config(
     page_title="OptiBodega 360 · Mejora Continua",
@@ -44,7 +44,7 @@ def pagina_mermas():
 
 
 def pagina_layout():
-    proximamente.render("layout")
+    layout.render()
 
 
 def pagina_kaizen():
@@ -61,10 +61,12 @@ p_toc = st.Page(pagina_cuellos_botella, title="Cuellos de Botella (TOC)", icon="
 
 p_kaizen = st.Page(pagina_kaizen, title="Cuadro de Mando Kaizen", icon="🎯",
                    url_path="kaizen")
+p_layout = st.Page(pagina_layout, title="Layout y Recorridos", icon="🗺️", url_path="layout")
 
 
 def pagina_inicio():
-    inicio.render(pagina_mermas=p_mermas, pagina_toc=p_toc, pagina_kaizen=p_kaizen)
+    inicio.render(pagina_mermas=p_mermas, pagina_toc=p_toc, pagina_kaizen=p_kaizen,
+                  pagina_layout=p_layout)
 
 
 navegacion = st.navigation(
@@ -75,8 +77,7 @@ navegacion = st.navigation(
         "Módulos de Ingeniería Industrial": [
             p_toc,
             p_mermas,
-            st.Page(pagina_layout, title="Layout y Recorridos", icon="🗺️",
-                    url_path="layout"),
+            p_layout,
             p_kaizen,
         ],
     }
