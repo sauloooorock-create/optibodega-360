@@ -83,6 +83,11 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+## Documentación
+
+- [`docs/MANUAL_USUARIO.md`](docs/MANUAL_USUARIO.md): cómo operar cada módulo y leer sus indicadores.
+- [`docs/GUION_DEMO.md`](docs/GUION_DEMO.md): guion de 8 minutos para la defensa, con preguntas probables del jurado.
+
 ## Pruebas de los modelos
 
 Validan las fórmulas de colas (M/M/1 y Erlang C), Erlang B, la simulación contra el modelo,
