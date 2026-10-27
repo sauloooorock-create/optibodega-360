@@ -57,6 +57,40 @@ CREATE INDEX IF NOT EXISTS idx_mermas_fecha  ON mermas (fecha);
 CREATE INDEX IF NOT EXISTS idx_mermas_depto  ON mermas (departamento);
 
 -- ---------------------------------------------------------------
+-- Módulo 4 · Producción y tiempos muertos por turno (un registro por día y turno)
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS produccion_turnos (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha           TEXT NOT NULL,              -- YYYY-MM-DD
+    turno           TEXT NOT NULL,
+    meta            REAL NOT NULL CHECK (meta > 0),          -- transacciones planeadas
+    real            REAL NOT NULL CHECK (real >= 0),         -- transacciones realizadas
+    colaboradores   INTEGER NOT NULL CHECK (colaboradores > 0),
+    horas           REAL NOT NULL CHECK (horas > 0),         -- horas planeadas del turno
+    minutos_muertos REAL NOT NULL DEFAULT 0 CHECK (minutos_muertos >= 0),
+    motivo_muerto   TEXT,                       -- causa principal del tiempo muerto
+    origen          TEXT DEFAULT 'manual',
+    creado_en       TEXT DEFAULT (datetime('now', 'localtime')),
+    UNIQUE (fecha, turno)
+);
+CREATE INDEX IF NOT EXISTS idx_prod_fecha ON produccion_turnos (fecha);
+
+-- ---------------------------------------------------------------
+-- Módulo 4 · Registro de eventos Kaizen (mejoras implementadas)
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS eventos_kaizen (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha       TEXT NOT NULL,
+    turno       TEXT,
+    titulo      TEXT NOT NULL,
+    causa       TEXT,
+    accion      TEXT NOT NULL,
+    resultado   TEXT,
+    responsable TEXT,
+    creado_en   TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+-- ---------------------------------------------------------------
 -- Módulo 1 · Tiempos observados (cajas, estacionamiento, recibo)
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS tiempos_toc (

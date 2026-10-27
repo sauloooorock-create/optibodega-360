@@ -112,6 +112,16 @@ TURNOS: list[str] = [
 
 UNIDADES: list[str] = ["pza", "kg", "caja", "L"]
 
+# Causas de tiempo muerto en un turno (base del Pareto de paros)
+MOTIVOS_MUERTO: list[str] = [
+    "Falta de personal",
+    "Falla de equipo (cajas, básculas, lector)",
+    "Espera de mercancía o reabasto",
+    "Limpieza o derrames",
+    "Cambio de turno o relevo",
+    "Otro",
+]
+
 # Herramientas de mejora continua sugeridas en los planes de acción
 HERRAMIENTAS_MEJORA: list[str] = [
     "5 Porqués",
