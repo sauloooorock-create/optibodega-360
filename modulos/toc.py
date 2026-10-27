@@ -259,31 +259,30 @@ def _tab_cajas(P: dict) -> None:
     else:
         ui.insight("✅ Con las cajas actuales se cumple la meta en todas las horas del perfil.")
 
-    with st.expander("🎲 Simulación paso a paso (avanzado)"):
-        # Simulación de eventos discretos
-        st.caption("Llegadas y servicios aleatorios. Con 8 horas o más, la espera simulada se "
-                   "acerca al modelo: esa convergencia valida el modelo.")
-        horas_sim = st.slider("Horas simuladas", 1, 8, 1, key="toc_horas_sim")
-        if st.button("▶️ Ejecutar simulación", key="toc_sim_btn"):
-            st.session_state["toc_sim"] = simular_espera(P["pico"], P["t_caja"], P["cajas"],
-                                                         float(horas_sim))
-            st.session_state["toc_sim_horas"] = horas_sim
-        esperas_sim = st.session_state.get("toc_sim")
-        if esperas_sim is not None and len(esperas_sim):
-            s = st.columns(4)
-            s[0].metric("Clientes atendidos", f"{len(esperas_sim):,}")
-            s[1].metric("Espera promedio (sim.)", _fmt_min(float(esperas_sim.mean())),
-                        f"Modelo en estado estable: {_fmt_min(r['Wq'])}", delta_color="off")
-            s[2].metric("Percentil 90", _fmt_min(float(np.percentile(esperas_sim, 90))))
-            s[3].metric("Superan la meta", f"{(esperas_sim > P['meta']).mean() * 100:.0f}%",
-                        delta_color="off")
-            fig_s = px.histogram(x=esperas_sim, nbins=25,
-                                 labels={"x": "Espera en fila (min)", "count": "Clientes"},
-                                 title="Distribución de la espera simulada")
-            fig_s.add_vline(x=P["meta"], line_dash="dash", line_color=ui.COLOR_A)
-            fig_s.update_layout(height=320, margin=dict(l=10, r=10, t=50, b=10))
-            fig_s.update_traces(marker_color=ui.COLOR_LINEA)
-            st.plotly_chart(fig_s, key="toc_fig_sim")
+    # Simulación de eventos discretos
+    st.caption("Llegadas y servicios aleatorios. Con 8 horas o más, la espera simulada se "
+               "acerca al modelo: esa convergencia valida el modelo.")
+    horas_sim = st.slider("Horas simuladas", 1, 8, 1, key="toc_horas_sim")
+    if st.button("▶️ Ejecutar simulación", key="toc_sim_btn"):
+        st.session_state["toc_sim"] = simular_espera(P["pico"], P["t_caja"], P["cajas"],
+                                                     float(horas_sim))
+        st.session_state["toc_sim_horas"] = horas_sim
+    esperas_sim = st.session_state.get("toc_sim")
+    if esperas_sim is not None and len(esperas_sim):
+        s = st.columns(4)
+        s[0].metric("Clientes atendidos", f"{len(esperas_sim):,}")
+        s[1].metric("Espera promedio (sim.)", _fmt_min(float(esperas_sim.mean())),
+                    f"Modelo en estado estable: {_fmt_min(r['Wq'])}", delta_color="off")
+        s[2].metric("Percentil 90", _fmt_min(float(np.percentile(esperas_sim, 90))))
+        s[3].metric("Superan la meta", f"{(esperas_sim > P['meta']).mean() * 100:.0f}%",
+                    delta_color="off")
+        fig_s = px.histogram(x=esperas_sim, nbins=25,
+                             labels={"x": "Espera en fila (min)", "count": "Clientes"},
+                             title="Distribución de la espera simulada")
+        fig_s.add_vline(x=P["meta"], line_dash="dash", line_color=ui.COLOR_A)
+        fig_s.update_layout(height=320, margin=dict(l=10, r=10, t=50, b=10))
+        fig_s.update_traces(marker_color=ui.COLOR_LINEA)
+        st.plotly_chart(fig_s, key="toc_fig_sim")
 
 
 def _tab_estacionamiento(P: dict) -> None:
@@ -483,19 +482,18 @@ def _tab_datos() -> None:
                       legend=dict(orientation="h", y=-0.25))
     st.plotly_chart(fig, key="toc_fig_datos")
 
-    with st.expander("🗂️ Últimos registros y administración"):
-        st.dataframe(df.head(300), hide_index=True, height=320)
-        a1, a2 = st.columns(2)
-        if a1.button("🎲 Agregar 30 días de tiempos simulados"):
-            n = generar_demo_toc()
-            st.session_state["toc_flash"] = f"Se cargaron {n} tiempos de demostración."
-            st.rerun()
-        confirmar = a2.checkbox("Confirmo que quiero borrar todos los tiempos de este módulo",
-                                key="toc_conf")
-        if a2.button("Borrar tiempos", disabled=not confirmar):
-            db.execute("DELETE FROM tiempos_toc")
-            st.session_state["toc_flash"] = "Se borraron los tiempos observados."
-            st.rerun()
+    st.dataframe(df.head(300), hide_index=True, height=320)
+    a1, a2 = st.columns(2)
+    if a1.button("🎲 Agregar 30 días de tiempos simulados"):
+        n = generar_demo_toc()
+        st.session_state["toc_flash"] = f"Se cargaron {n} tiempos de demostración."
+        st.rerun()
+    confirmar = a2.checkbox("Confirmo que quiero borrar todos los tiempos de este módulo",
+                            key="toc_conf")
+    if a2.button("Borrar tiempos", disabled=not confirmar):
+        db.execute("DELETE FROM tiempos_toc")
+        st.session_state["toc_flash"] = "Se borraron los tiempos observados."
+        st.rerun()
 
 
 # =====================================================================
@@ -511,15 +509,13 @@ def render() -> None:
         st.success(st.session_state.pop("toc_flash"))
 
     P = _parametros()
-    t1, t2, t3, t4, t5 = st.tabs(["🧾 Cajas", "🚗 Estacionamiento", "🚚 Recibo",
-                                  "🎯 Restricción", "📋 Datos"])
-    with t1:
-        _tab_cajas(P)
-    with t2:
-        _tab_estacionamiento(P)
-    with t3:
-        _tab_recibo(P)
-    with t4:
-        _tab_restriccion(P)
-    with t5:
-        _tab_datos()
+    ui.seccion("🧾 Cajas · espera en fila")
+    _tab_cajas(P)
+    ui.seccion("🚗 Estacionamiento")
+    _tab_estacionamiento(P)
+    ui.seccion("🚚 Recibo de proveedores")
+    _tab_recibo(P)
+    ui.seccion("🎯 Restricción · ¿qué limita la tienda?")
+    _tab_restriccion(P)
+    ui.seccion("📋 Tiempos observados")
+    _tab_datos()

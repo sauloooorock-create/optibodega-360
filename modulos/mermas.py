@@ -450,54 +450,53 @@ def _tab_registro(productos: pd.DataFrame) -> None:
                f"pérdida de {ui.money(cantidad * costo_u, 2)}")
         st.rerun()
 
-    with st.expander("📥 Carga masiva desde CSV o Excel"):
-        st.caption("Descarga la plantilla, llénala con tus registros y súbela. "
-                   "Campos obligatorios: fecha, departamento, producto, categoria, "
-                   "cantidad, costo_unitario.")
-        ejemplo = pd.DataFrame([{
-            "fecha": date.today().isoformat(), "turno": TURNOS[0],
-            "departamento": "Frutas y Verduras", "sku": "FV001", "producto": "Plátano Tabasco",
-            "categoria": "Caducidad", "causa": "Sobreinventario / pedido excesivo",
-            "cantidad": 4.5, "unidad": "kg", "costo_unitario": 14.5,
-            "responsable": "Jefe de piso", "observaciones": "",
-        }])
-        st.download_button("⬇️ Plantilla CSV", ejemplo.to_csv(index=False).encode("utf-8-sig"),
-                           "plantilla_mermas.csv", "text/csv")
-        clave_upl = f"mer_upload_{st.session_state.get('mer_upl_n', 0)}"
-        archivo = st.file_uploader("Archivo", type=["csv", "xlsx"], key=clave_upl)
-        if archivo is not None:
-            try:
-                carga = (pd.read_csv(archivo) if archivo.name.endswith(".csv")
-                         else pd.read_excel(archivo))
-                carga.columns = [c.strip().lower() for c in carga.columns]
-                obligatorias = ["fecha", "departamento", "producto", "categoria",
-                                "cantidad", "costo_unitario"]
-                faltan = [c for c in obligatorias if c not in carga.columns]
-                if faltan:
-                    st.error(f"Faltan columnas obligatorias: {', '.join(faltan)}")
-                    return
-                for c in COLUMNAS_PLANTILLA:
-                    if c not in carga.columns:
-                        carga[c] = ""
-                carga["fecha"] = pd.to_datetime(carga["fecha"], dayfirst=False,
-                                                errors="coerce").dt.date.astype(str)
-                carga["cantidad"] = pd.to_numeric(carga["cantidad"], errors="coerce")
-                carga["costo_unitario"] = pd.to_numeric(carga["costo_unitario"], errors="coerce")
-                validas = carga.dropna(subset=["cantidad", "costo_unitario"])
-                validas = validas[(validas["cantidad"] > 0) & (validas["fecha"] != "NaT")]
-                carga = carga.fillna("")
-                validas = validas.fillna("")
-                st.write(f"Filas válidas: **{len(validas)}** de {len(carga)}")
-                st.dataframe(validas.head(20), hide_index=True)
-                if len(validas) and st.button(f"Importar {len(validas)} registros",
-                                              type="primary"):
-                    n = insertar_lote(validas, "carga_masiva")
-                    # Cambiar la clave reinicia el cargador y evita importar dos veces
-                    st.session_state["mer_upl_n"] = st.session_state.get("mer_upl_n", 0) + 1
-                    _flash(f"Se importaron {n} registros de merma.")
-                    st.rerun()
-            except Exception as exc:  # noqa: BLE001
-                st.error(f"No se pudo leer el archivo: {exc}")
+    st.caption("Descarga la plantilla, llénala con tus registros y súbela. "
+               "Campos obligatorios: fecha, departamento, producto, categoria, "
+               "cantidad, costo_unitario.")
+    ejemplo = pd.DataFrame([{
+        "fecha": date.today().isoformat(), "turno": TURNOS[0],
+        "departamento": "Frutas y Verduras", "sku": "FV001", "producto": "Plátano Tabasco",
+        "categoria": "Caducidad", "causa": "Sobreinventario / pedido excesivo",
+        "cantidad": 4.5, "unidad": "kg", "costo_unitario": 14.5,
+        "responsable": "Jefe de piso", "observaciones": "",
+    }])
+    st.download_button("⬇️ Plantilla CSV", ejemplo.to_csv(index=False).encode("utf-8-sig"),
+                       "plantilla_mermas.csv", "text/csv")
+    clave_upl = f"mer_upload_{st.session_state.get('mer_upl_n', 0)}"
+    archivo = st.file_uploader("Archivo", type=["csv", "xlsx"], key=clave_upl)
+    if archivo is not None:
+        try:
+            carga = (pd.read_csv(archivo) if archivo.name.endswith(".csv")
+                     else pd.read_excel(archivo))
+            carga.columns = [c.strip().lower() for c in carga.columns]
+            obligatorias = ["fecha", "departamento", "producto", "categoria",
+                            "cantidad", "costo_unitario"]
+            faltan = [c for c in obligatorias if c not in carga.columns]
+            if faltan:
+                st.error(f"Faltan columnas obligatorias: {', '.join(faltan)}")
+                return
+            for c in COLUMNAS_PLANTILLA:
+                if c not in carga.columns:
+                    carga[c] = ""
+            carga["fecha"] = pd.to_datetime(carga["fecha"], dayfirst=False,
+                                            errors="coerce").dt.date.astype(str)
+            carga["cantidad"] = pd.to_numeric(carga["cantidad"], errors="coerce")
+            carga["costo_unitario"] = pd.to_numeric(carga["costo_unitario"], errors="coerce")
+            validas = carga.dropna(subset=["cantidad", "costo_unitario"])
+            validas = validas[(validas["cantidad"] > 0) & (validas["fecha"] != "NaT")]
+            carga = carga.fillna("")
+            validas = validas.fillna("")
+            st.write(f"Filas válidas: **{len(validas)}** de {len(carga)}")
+            st.dataframe(validas.head(20), hide_index=True)
+            if len(validas) and st.button(f"Importar {len(validas)} registros",
+                                          type="primary"):
+                n = insertar_lote(validas, "carga_masiva")
+                # Cambiar la clave reinicia el cargador y evita importar dos veces
+                st.session_state["mer_upl_n"] = st.session_state.get("mer_upl_n", 0) + 1
+                _flash(f"Se importaron {n} registros de merma.")
+                st.rerun()
+        except Exception as exc:  # noqa: BLE001
+            st.error(f"No se pudo leer el archivo: {exc}")
 
 
 def _tab_pareto(df: pd.DataFrame) -> None:
@@ -523,21 +522,20 @@ def _tab_pareto(df: pd.DataFrame) -> None:
     )
     ui.insight(_texto_insight(par, dim, metrica))
 
-    with st.expander("📋 Tabla de Pareto y clasificación ABC", expanded=False):
-        st.dataframe(
-            par.rename(columns={col: dim}),
-            hide_index=True,
-            column_config={
-                "rank": st.column_config.NumberColumn("#", width="small"),
-                "costo": st.column_config.NumberColumn("Pérdida (MXN)", format="$%.2f"),
-                "eventos": st.column_config.NumberColumn("Eventos"),
-                "cantidad": st.column_config.NumberColumn("Cantidad", format="%.2f"),
-                "pct": st.column_config.NumberColumn("% del total", format="%.1f%%"),
-                "pct_acum": st.column_config.ProgressColumn(
-                    "% acumulado", format="%.1f%%", min_value=0, max_value=100),
-                "clase": st.column_config.TextColumn("Clase ABC"),
-            },
-        )
+    st.dataframe(
+        par.rename(columns={col: dim}),
+        hide_index=True,
+        column_config={
+            "rank": st.column_config.NumberColumn("#", width="small"),
+            "costo": st.column_config.NumberColumn("Pérdida (MXN)", format="$%.2f"),
+            "eventos": st.column_config.NumberColumn("Eventos"),
+            "cantidad": st.column_config.NumberColumn("Cantidad", format="%.2f"),
+            "pct": st.column_config.NumberColumn("% del total", format="%.1f%%"),
+            "pct_acum": st.column_config.ProgressColumn(
+                "% acumulado", format="%.1f%%", min_value=0, max_value=100),
+            "clase": st.column_config.TextColumn("Clase ABC"),
+        },
+    )
 
     # ---- Estratificación de segundo nivel ---------------------------------
     st.markdown("#### 🔬 Pareto de segundo nivel (estratificación)")
@@ -620,30 +618,29 @@ def _tab_analisis(df: pd.DataFrame) -> None:
                         xaxis_title="", yaxis_title="")
     c2.plotly_chart(fig_h, key="fig_heat")
 
-    with st.expander("📊 Más detalle: turno, día de la semana y mapa de árbol"):
-        # ---- Patrones por turno y día ------------------------------------------
-        c3, c4 = st.columns(2)
-        turno = df.groupby("turno", as_index=False)["costo_total"].sum().sort_values("costo_total")
-        fig_tu = px.bar(turno, x="costo_total", y="turno", orientation="h",
-                        title="Pérdida por turno", labels={"costo_total": "MXN", "turno": ""},
-                        color_discrete_sequence=[ui.COLOR_PRIMARIO])
-        fig_tu.update_layout(height=320, margin=dict(l=10, r=10, t=50, b=10))
-        c3.plotly_chart(fig_tu, key="fig_turno")
+    # ---- Patrones por turno y día ------------------------------------------
+    c3, c4 = st.columns(2)
+    turno = df.groupby("turno", as_index=False)["costo_total"].sum().sort_values("costo_total")
+    fig_tu = px.bar(turno, x="costo_total", y="turno", orientation="h",
+                    title="Pérdida por turno", labels={"costo_total": "MXN", "turno": ""},
+                    color_discrete_sequence=[ui.COLOR_PRIMARIO])
+    fig_tu.update_layout(height=320, margin=dict(l=10, r=10, t=50, b=10))
+    c3.plotly_chart(fig_tu, key="fig_turno")
 
-        dsem = df.assign(dia=df["fecha"].dt.dayofweek).groupby("dia")["costo_total"].sum()
-        dsem = dsem.reindex(range(7), fill_value=0)
-        fig_d = px.bar(x=DIAS_SEMANA, y=dsem.values, title="Pérdida por día de la semana",
-                       labels={"x": "", "y": "MXN"}, color_discrete_sequence=[ui.COLOR_LINEA])
-        fig_d.update_layout(height=320, margin=dict(l=10, r=10, t=50, b=10))
-        c4.plotly_chart(fig_d, key="fig_dia")
+    dsem = df.assign(dia=df["fecha"].dt.dayofweek).groupby("dia")["costo_total"].sum()
+    dsem = dsem.reindex(range(7), fill_value=0)
+    fig_d = px.bar(x=DIAS_SEMANA, y=dsem.values, title="Pérdida por día de la semana",
+                   labels={"x": "", "y": "MXN"}, color_discrete_sequence=[ui.COLOR_LINEA])
+    fig_d.update_layout(height=320, margin=dict(l=10, r=10, t=50, b=10))
+    c4.plotly_chart(fig_d, key="fig_dia")
 
-        # ---- Mapa de árbol -----------------------------------------------------
-        fig_tm = px.treemap(df, path=[px.Constant("Tienda"), "departamento", "producto"],
-                            values="costo_total", color="departamento",
-                            title="Mapa de árbol de pérdidas: departamento → producto")
-        fig_tm.update_traces(hovertemplate="<b>%{label}</b><br>$%{value:,.0f}<extra></extra>")
-        fig_tm.update_layout(height=480, margin=dict(l=10, r=10, t=50, b=10))
-        st.plotly_chart(fig_tm, key="fig_tree")
+    # ---- Mapa de árbol -----------------------------------------------------
+    fig_tm = px.treemap(df, path=[px.Constant("Tienda"), "departamento", "producto"],
+                        values="costo_total", color="departamento",
+                        title="Mapa de árbol de pérdidas: departamento → producto")
+    fig_tm.update_traces(hovertemplate="<b>%{label}</b><br>$%{value:,.0f}<extra></extra>")
+    fig_tm.update_layout(height=480, margin=dict(l=10, r=10, t=50, b=10))
+    st.plotly_chart(fig_tm, key="fig_tree")
 
 
 def _tab_plan(df: pd.DataFrame) -> None:
@@ -784,28 +781,26 @@ def _tab_datos(df: pd.DataFrame, df_all: pd.DataFrame) -> None:
         c2.download_button("⬇️ CSV de registros", vista.to_csv(index=False).encode("utf-8-sig"),
                            f"mermas_{sucursal}_{stamp}.csv", "text/csv")
 
-    with st.expander("🗑️ Eliminar registros específicos"):
-        ids = st.multiselect("IDs a eliminar", df["id"].tolist() if not df.empty else [],
-                             key="del_ids")
-        if ids and st.button(f"Eliminar {len(ids)} registro(s)"):
-            marcadores = ",".join("?" * len(ids))
-            db.execute(f"DELETE FROM mermas WHERE id IN ({marcadores})", [int(i) for i in ids])
-            _flash(f"Se eliminaron {len(ids)} registros.")
-            st.rerun()
+    ids = st.multiselect("IDs a eliminar", df["id"].tolist() if not df.empty else [],
+                         key="del_ids")
+    if ids and st.button(f"Eliminar {len(ids)} registro(s)"):
+        marcadores = ",".join("?" * len(ids))
+        db.execute(f"DELETE FROM mermas WHERE id IN ({marcadores})", [int(i) for i in ids])
+        _flash(f"Se eliminaron {len(ids)} registros.")
+        st.rerun()
 
-    with st.expander("🛠️ Administración de datos"):
-        a1, a2 = st.columns(2)
-        if a1.button("🎲 Agregar 90 días de datos de demostración"):
-            n = generar_datos_demo()
-            _flash(f"Se generaron {n} registros de demostración.")
-            st.rerun()
-        confirmar = a2.checkbox("Confirmo que quiero borrar TODOS los registros de merma",
-                                key="conf_borrar")
-        if a2.button("Borrar todo", disabled=not confirmar):
-            db.execute("DELETE FROM mermas")
-            _flash(f"Se borraron {len(df_all)} registros.", "warning")
-            st.session_state.pop("mer_rango", None)
-            st.rerun()
+    a1, a2 = st.columns(2)
+    if a1.button("🎲 Agregar 90 días de datos de demostración"):
+        n = generar_datos_demo()
+        _flash(f"Se generaron {n} registros de demostración.")
+        st.rerun()
+    confirmar = a2.checkbox("Confirmo que quiero borrar TODOS los registros de merma",
+                            key="conf_borrar")
+    if a2.button("Borrar todo", disabled=not confirmar):
+        db.execute("DELETE FROM mermas")
+        _flash(f"Se borraron {len(df_all)} registros.", "warning")
+        st.session_state.pop("mer_rango", None)
+        st.rerun()
 
 
 # =====================================================================
@@ -836,15 +831,13 @@ def render() -> None:
         _kpis(df, df_all, filtros)
         st.caption(f"Periodo analizado: {filtros['ini']:%d/%m/%Y} – {filtros['fin']:%d/%m/%Y}")
 
-    t1, t2, t3, t4, t5 = st.tabs(["📝 Registro", "📊 Pareto", "🔍 Análisis profundo",
-                                  "🛠️ Plan de acción", "🗂️ Datos"])
-    with t1:
-        _tab_registro(productos)
-    with t2:
-        _tab_pareto(df)
-    with t3:
-        _tab_analisis(df)
-    with t4:
-        _tab_plan(df)
-    with t5:
-        _tab_datos(df, df_all)
+    ui.seccion("📊 Pareto · ¿qué productos pierden más?")
+    _tab_pareto(df)
+    ui.seccion("🛠️ Plan de acción")
+    _tab_plan(df)
+    ui.seccion("🔍 Análisis profundo")
+    _tab_analisis(df)
+    ui.seccion("📝 Registrar mermas")
+    _tab_registro(productos)
+    ui.seccion("🗂️ Datos y administración")
+    _tab_datos(df, df_all)
