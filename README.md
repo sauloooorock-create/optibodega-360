@@ -21,6 +21,7 @@ optibodega-360/
     ├── mermas.py           # Módulo 2 · Mermas y costos (Pareto 80/20)
     ├── layout.py           # Módulo 3 · Layout y recorridos (rutas, ABC, operaciones)
     ├── kaizen.py           # Módulo 4 · Cuadro de mando Kaizen (KPIs por turno)
+    ├── respaldo.py         # Respaldo, restauración y reporte de resultados
     └── proximamente.py     # Fichas de módulos futuros (reserva)
 ```
 
@@ -82,6 +83,20 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+## Pruebas de los modelos
+
+Validan las fórmulas de colas (M/M/1 y Erlang C), Erlang B, la simulación contra el modelo,
+la distancia rectilínea, la mejora 2-opt contra la ruta óptima por fuerza bruta, el semáforo
+Kaizen y la ida y vuelta del respaldo.
+
+```bash
+python tests/test_modelos.py     # sin dependencias extra
+# o, con pytest instalado:  pytest tests
+```
+
+Página **Respaldo y reporte**: descarga un Excel con todas las tablas y la hoja de resumen,
+y permite restaurarlo si la app se reinicia.
+
 ## Desplegar en Streamlit Cloud
 
 1. Sube esta carpeta a un repositorio de GitHub (la raíz del repo debe contener `app.py`).
@@ -101,4 +116,5 @@ streamlit run app.py
 - [x] Módulo 2 · Mermas y costos (Pareto 80/20)
 - [x] Módulo 3 · Layout y recorridos (distancias rectilíneas, 2-opt, reubicación ABC)
 - [x] Módulo 4 · Cuadro de mando Kaizen (KPIs por turno)
+- [x] Respaldo y restauración desde la app, reporte de resultados y pruebas de los modelos
 - [ ] Base de datos externa para persistencia en la nube
