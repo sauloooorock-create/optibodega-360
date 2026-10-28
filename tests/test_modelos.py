@@ -106,6 +106,35 @@ def test_respaldo_ida_y_vuelta():
             db.DB_PATH = original
 
 
+# ---------------------------------------------------------------------
+# Análisis de sensibilidad: propiedades de monotonía
+# ---------------------------------------------------------------------
+from modulos import sensibilidad as _sens  # noqa: E402
+
+
+def test_cajas_crecen_con_la_demanda():
+    """Más clientes por hora nunca requiere menos cajas."""
+    m = _sens.barrido_cajas([80, 110, 140, 170], [2.5], 3.0).iloc[0].to_numpy()
+    validos = m[~np.isnan(m)]
+    assert np.all(np.diff(validos) >= 0)
+
+
+def test_bloqueo_sube_con_autos_y_baja_con_cajones():
+    m = _sens.barrido_estacionamiento([50, 80, 110], [40, 60, 80], 35.0)
+    # Filas = cajones, columnas = autos: más autos (columnas) -> más bloqueo
+    assert np.all(np.diff(m.to_numpy(), axis=1) >= -1e-9)
+    # Más cajones (filas) -> menos bloqueo
+    assert np.all(np.diff(m.to_numpy(), axis=0) <= 1e-9)
+
+
+def test_tornado_ordenado_y_con_signo_correcto():
+    t = _sens.tornado_cajas()
+    assert list(t["Rango"]) == sorted(t["Rango"])
+    # Más minutos por cliente o más clientes nunca mejoran la espera
+    fila = t[t["Parámetro"].str.startswith("Minutos")].iloc[0]
+    assert fila["Espera_b"] >= fila["Espera_a"]
+
+
 if __name__ == "__main__":
     fallos = 0
     for nombre, fn in list(globals().items()):
@@ -118,3 +147,4 @@ if __name__ == "__main__":
                 print(f"❌ {nombre}: {exc!r}")
     print("Todas las pruebas pasaron." if not fallos else f"{fallos} prueba(s) fallaron.")
     sys.exit(1 if fallos else 0)
+
