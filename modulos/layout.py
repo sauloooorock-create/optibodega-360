@@ -33,7 +33,7 @@ from modulos import ui
 
 OFFSET_M = 4.0           # distancia del almacén al primer pasillo de venta (m)
 ORIGEN = (0.0, 0.0, "Almacén")
-PARAM_DEFAULT = {"pasillos": 8, "largo": 20.0, "sep": 5.0, "vel": 1.2, "pick": 0.3}
+PARAM_DEFAULT = {"pasillos": 10, "largo": 40.0, "sep": 5.0, "vel": 1.2, "pick": 0.3}
 SIMBOLOS = {"Operación": "○", "Transporte": "→", "Inspección": "□", "Demora": "D"}
 
 
@@ -104,10 +104,10 @@ def mejorar_2opt(ruta: list[tuple]) -> list[tuple]:
 def _parametros() -> dict:
     with st.expander("⚙️ Ajustes de la tienda", expanded=False):
         c1, c2, c3, c4, c5 = st.columns(5)
-        pasillos = c1.number_input("Pasillos de venta", min_value=1, max_value=20, value=8,
+        pasillos = c1.number_input("Pasillos de venta", min_value=1, max_value=20, value=10,
                                    key="lay_pasillos")
         largo = c2.number_input("Largo de pasillo (m)", min_value=8.0, max_value=60.0,
-                                value=20.0, step=2.0, key="lay_largo")
+                                value=40.0, step=2.0, key="lay_largo")
         sep = c3.number_input("Separación entre pasillos (m)", min_value=2.0, max_value=10.0,
                               value=5.0, step=0.5, key="lay_sep")
         vel = c4.number_input("Velocidad de caminata (m/s)", min_value=0.5, max_value=2.0,

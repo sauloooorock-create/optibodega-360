@@ -152,7 +152,7 @@ def _parametros() -> dict:
     with st.expander("⚙️ Ajustes de la tienda", expanded=False):
         st.markdown("**🧾 Cajas**")
         c1, c2, c3, c4 = st.columns(4)
-        cajas = c1.number_input("Cajas abiertas", min_value=1, max_value=20, value=4,
+        cajas = c1.number_input("Cajas abiertas", min_value=1, max_value=20, value=5,
                                 key="toc_cajas")
         t_caja = c2.number_input("Min. por cliente (servicio)", min_value=0.5, max_value=20.0,
                                  value=2.5, step=0.5, key="toc_tcaja")
